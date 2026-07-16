@@ -29,7 +29,8 @@ function Get-AgentProcess {
         
         [int]$Top = 50,
         
-        [switch]$Json
+        [switch]$Raw,
+                [switch]$Json
     )
     
     $processes = Get-Process -ErrorAction SilentlyContinue
@@ -95,10 +96,10 @@ function Get-AgentProcess {
         processes = @($results)
     }
     
-    if ($Json) {
-        $output | ConvertTo-Json -Depth 10
-    } else {
+    if ($Raw) {
         $output
+    } else {
+        $output | ConvertTo-Json -Depth 10
     }
 }
 

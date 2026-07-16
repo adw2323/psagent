@@ -24,7 +24,8 @@ function Get-AgentPort {
         
         [string]$State,
         
-        [switch]$Json
+        [switch]$Raw,
+                [switch]$Json
     )
     
     $connections = Get-NetTCPConnection -ErrorAction SilentlyContinue
@@ -69,10 +70,10 @@ function Get-AgentPort {
         connections = $results
     }
     
-    if ($Json) {
-        $output | ConvertTo-Json -Depth 10
-    } else {
+    if ($Raw) {
         $output
+    } else {
+        $output | ConvertTo-Json -Depth 10
     }
 }
 

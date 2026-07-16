@@ -22,7 +22,8 @@ function Compare-AgentDiff {
         [Parameter(Mandatory)]
         [string]$Difference,
         
-        [switch]$Json
+        [switch]$Raw,
+                [switch]$Json
     )
     
     $refPath = Resolve-Path -Path $Reference -ErrorAction SilentlyContinue
@@ -71,10 +72,10 @@ function Compare-AgentDiff {
         changes = $changes
     }
     
-    if ($Json) {
-        $output | ConvertTo-Json -Depth 10
-    } else {
+    if ($Raw) {
         $output
+    } else {
+        $output | ConvertTo-Json -Depth 10
     }
 }
 

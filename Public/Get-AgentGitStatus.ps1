@@ -20,7 +20,8 @@ function Get-AgentGitStatus {
         [Parameter(Position = 0)]
         [string]$Path = '.',
         
-        [switch]$Json
+        [switch]$Raw,
+                [switch]$Json
     )
     
     $resolvedPath = Resolve-Path -Path $Path -ErrorAction SilentlyContinue
@@ -107,10 +108,10 @@ function Get-AgentGitStatus {
         total_untracked = $untracked.Count
     }
     
-    if ($Json) {
-        $output | ConvertTo-Json -Depth 10
-    } else {
+    if ($Raw) {
         $output
+    } else {
+        $output | ConvertTo-Json -Depth 10
     }
 }
 

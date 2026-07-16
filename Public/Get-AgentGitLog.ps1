@@ -28,7 +28,8 @@ function Get-AgentGitLog {
         
         [string]$Author,
         
-        [switch]$Json
+        [switch]$Raw,
+                [switch]$Json
     )
     
     $resolvedPath = Resolve-Path -Path $Path -ErrorAction SilentlyContinue
@@ -75,10 +76,10 @@ function Get-AgentGitLog {
         commits = $commits
     }
     
-    if ($Json) {
-        $output | ConvertTo-Json -Depth 10
-    } else {
+    if ($Raw) {
         $output
+    } else {
+        $output | ConvertTo-Json -Depth 10
     }
 }
 

@@ -10,7 +10,8 @@ function Get-AgentDisk {
     #>
     [CmdletBinding()]
     param(
-        [switch]$Json
+        [switch]$Raw,
+                [switch]$Json
     )
     
     $results = @()
@@ -41,10 +42,10 @@ function Get-AgentDisk {
         drives = @($results)
     }
     
-    if ($Json) {
-        $output | ConvertTo-Json -Depth 10
-    } else {
+    if ($Raw) {
         $output
+    } else {
+        $output | ConvertTo-Json -Depth 10
     }
 }
 

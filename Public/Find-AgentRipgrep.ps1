@@ -31,7 +31,8 @@ function Find-AgentRipgrep {
         
         [switch]$WholeWord,
         
-        [switch]$Json
+        [switch]$Raw,
+                [switch]$Json
     )
     
     # Check if ripgrep is available
@@ -126,10 +127,10 @@ function Find-AgentRipgrep {
         matches = $matches
     }
     
-    if ($Json) {
-        $output | ConvertTo-Json -Depth 10
-    } else {
+    if ($Raw) {
         $output
+    } else {
+        $output | ConvertTo-Json -Depth 10
     }
 }
 

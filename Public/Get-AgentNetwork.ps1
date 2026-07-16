@@ -14,7 +14,8 @@ function Get-AgentNetwork {
         
         [int]$LocalPort,
         
-        [switch]$Json
+        [switch]$Raw,
+                [switch]$Json
     )
     
     $connections = Get-NetTCPConnection -ErrorAction SilentlyContinue
@@ -50,10 +51,10 @@ function Get-AgentNetwork {
         connections = $results
     }
     
-    if ($Json) {
-        $output | ConvertTo-Json -Depth 10
-    } else {
+    if ($Raw) {
         $output
+    } else {
+        $output | ConvertTo-Json -Depth 10
     }
 }
 

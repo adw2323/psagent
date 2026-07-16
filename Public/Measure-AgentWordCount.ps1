@@ -15,7 +15,8 @@ function Measure-AgentWordCount {
         
         [switch]$Recurse,
         
-        [switch]$Json
+        [switch]$Raw,
+                [switch]$Json
     )
     
     $files = Get-ChildItem -Path $Path -Recurse:$Recurse -File -ErrorAction SilentlyContinue
@@ -47,10 +48,10 @@ function Measure-AgentWordCount {
         files = $results
     }
     
-    if ($Json) {
-        $output | ConvertTo-Json -Depth 10
-    } else {
+    if ($Raw) {
         $output
+    } else {
+        $output | ConvertTo-Json -Depth 10
     }
 }
 

@@ -18,7 +18,8 @@ function Get-AgentToolVersion {
     param(
         [string[]]$Tools,
         
-        [switch]$Json
+        [switch]$Raw,
+                [switch]$Json
     )
     
     $toolDefs = @(
@@ -82,10 +83,10 @@ function Get-AgentToolVersion {
         tools = $results
     }
     
-    if ($Json) {
-        $output | ConvertTo-Json -Depth 10
-    } else {
+    if ($Raw) {
         $output
+    } else {
+        $output | ConvertTo-Json -Depth 10
     }
 }
 

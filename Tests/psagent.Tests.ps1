@@ -1,7 +1,6 @@
 # psagent.Tests.ps1 - Pester tests for psagent module
 
 BeforeAll {
-    # Import the module
     Import-Module "$PSScriptRoot/../psagent.psd1" -Force
 }
 
@@ -31,13 +30,13 @@ Describe 'Get-AgentChildItem' {
 
 Describe 'Get-AgentProcess' {
     It 'Returns process list' {
-        $result = Get-AgentProcess -Top 5
+        $result = Get-AgentProcess -Top 5 -Raw
         $result.type | Should -Be 'process_list'
         $result.processes | Should -Not -BeNullOrEmpty
     }
     
     It 'Returns structured process data' {
-        $result = Get-AgentProcess -Top 5
+        $result = Get-AgentProcess -Top 5 -Raw
         $proc = $result.processes | Where-Object { $_.id -gt 0 } | Select-Object -First 1
         $proc | Should -Not -BeNullOrEmpty
         $proc.name | Should -Not -BeNullOrEmpty
@@ -46,7 +45,7 @@ Describe 'Get-AgentProcess' {
     }
     
     It 'Filters by name' {
-        $result = Get-AgentProcess -Name 'python'
+        $result = Get-AgentProcess -Name 'python' -Raw
         $result.processes | Should -Not -BeNullOrEmpty
         $result.processes[0].name | Should -Match 'python'
     }
@@ -54,13 +53,13 @@ Describe 'Get-AgentProcess' {
 
 Describe 'Get-AgentService' {
     It 'Returns service list' {
-        $result = Get-AgentService
+        $result = Get-AgentService -Raw
         $result.type | Should -Be 'service_list'
         $result.services | Should -Not -BeNullOrEmpty
     }
     
     It 'Returns structured service data' {
-        $result = Get-AgentService -Status Running
+        $result = Get-AgentService -Status Running -Raw
         $result.services | Should -Not -BeNullOrEmpty
         $svc = $result.services[0]
         $svc.name | Should -Not -BeNullOrEmpty
@@ -70,13 +69,13 @@ Describe 'Get-AgentService' {
 
 Describe 'Get-AgentDisk' {
     It 'Returns disk info' {
-        $result = Get-AgentDisk
+        $result = Get-AgentDisk -Raw
         $result.type | Should -Be 'disk_info'
         $result.drives | Should -Not -BeNullOrEmpty
     }
     
     It 'Returns structured disk data' {
-        $result = Get-AgentDisk
+        $result = Get-AgentDisk -Raw
         $drive = $result.drives[0]
         $drive.name | Should -Not -BeNullOrEmpty
         $drive.total_bytes | Should -BeGreaterThan 0
@@ -95,20 +94,20 @@ Describe 'ConvertTo-AgentJson' {
 
 Describe 'Get-AgentEnvironment' {
     It 'Returns environment variables' {
-        $result = Get-AgentEnvironment
+        $result = Get-AgentEnvironment -Raw
         $result.type | Should -Be 'environment'
         $result.vars | Should -Not -BeNullOrEmpty
     }
     
     It 'Returns structured env data' {
-        $result = Get-AgentEnvironment
+        $result = Get-AgentEnvironment -Raw
         $var = $result.vars[0]
         $var.name | Should -Not -BeNullOrEmpty
         $var.value | Should -Not -BeNullOrEmpty
     }
     
     It 'Filters by name' {
-        $result = Get-AgentEnvironment -Filter 'PATH'
+        $result = Get-AgentEnvironment -Filter 'PATH' -Raw
         $result.vars | Should -Not -BeNullOrEmpty
         $result.vars[0].name | Should -Match 'PATH'
     }
@@ -116,13 +115,13 @@ Describe 'Get-AgentEnvironment' {
 
 Describe 'Get-AgentFile' {
     It 'Returns file info' {
-        $result = Get-AgentFile -Path './psagent.psd1'
+        $result = Get-AgentFile -Path './psagent.psd1' -Raw
         $result.type | Should -Be 'file_info'
         $result.name | Should -Be 'psagent.psd1'
     }
     
     It 'Returns structured file data' {
-        $result = Get-AgentFile -Path './psagent.psd1'
+        $result = Get-AgentFile -Path './psagent.psd1' -Raw
         $result.size_bytes | Should -BeGreaterThan 0
         $result.extension | Should -Be '.psd1'
         $result.language | Should -Not -BeNullOrEmpty
@@ -131,13 +130,13 @@ Describe 'Get-AgentFile' {
 
 Describe 'Get-AgentNetwork' {
     It 'Returns network connections' {
-        $result = Get-AgentNetwork
+        $result = Get-AgentNetwork -Raw
         $result.type | Should -Be 'network_connections'
         $result.connections | Should -Not -BeNullOrEmpty
     }
     
     It 'Returns structured connection data' {
-        $result = Get-AgentNetwork
+        $result = Get-AgentNetwork -Raw
         $conn = $result.connections[0]
         $conn.local_address | Should -Not -BeNullOrEmpty
         $conn.local_port | Should -BeGreaterThan 0
@@ -146,13 +145,13 @@ Describe 'Get-AgentNetwork' {
 
 Describe 'Get-AgentPort' {
     It 'Returns listening ports' {
-        $result = Get-AgentPort
+        $result = Get-AgentPort -Raw
         $result.type | Should -Be 'port_usage'
         $result.connections | Should -Not -BeNullOrEmpty
     }
     
     It 'Returns structured port data' {
-        $result = Get-AgentPort
+        $result = Get-AgentPort -Raw
         $port = $result.connections[0]
         $port.local_port | Should -BeGreaterThan 0
         $port.local_address | Should -Not -BeNullOrEmpty
@@ -161,13 +160,13 @@ Describe 'Get-AgentPort' {
 
 Describe 'Find-AgentPattern' {
     It 'Finds pattern in files' {
-        $result = Find-AgentPattern -Pattern 'function' -Path './Public'
+        $result = Find-AgentPattern -Pattern 'function' -Path './Public' -Raw
         $result.type | Should -Be 'search_results'
         $result.matches | Should -Not -BeNullOrEmpty
     }
     
     It 'Returns structured match data' {
-        $result = Find-AgentPattern -Pattern 'function' -Path './Public'
+        $result = Find-AgentPattern -Pattern 'function' -Path './Public' -Raw
         $match = $result.matches[0]
         $match.file | Should -Not -BeNullOrEmpty
         $match.line_number | Should -BeGreaterThan 0
@@ -177,13 +176,13 @@ Describe 'Find-AgentPattern' {
 
 Describe 'Find-AgentRipgrep' {
     It 'Finds pattern with ripgrep' {
-        $result = Find-AgentRipgrep -Pattern 'function' -Path './Public'
+        $result = Find-AgentRipgrep -Pattern 'function' -Path './Public' -Raw
         $result.type | Should -Be 'ripgrep_results'
         $result.matches | Should -Not -BeNullOrEmpty
     }
     
     It 'Returns structured ripgrep data' {
-        $result = Find-AgentRipgrep -Pattern 'function' -Path './Public'
+        $result = Find-AgentRipgrep -Pattern 'function' -Path './Public' -Raw
         $match = $result.matches[0]
         $match.file | Should -Not -BeNullOrEmpty
         $match.line_number | Should -BeGreaterThan 0
@@ -192,20 +191,20 @@ Describe 'Find-AgentRipgrep' {
 
 Describe 'Compare-AgentDiff' {
     It 'Compares two files' {
-        $result = Compare-AgentDiff -Reference './psagent.psd1' -Difference './psagent.psm1'
+        $result = Compare-AgentDiff -Reference './psagent.psd1' -Difference './psagent.psm1' -Raw
         $result.type | Should -Be 'diff'
     }
 }
 
 Describe 'Measure-AgentWordCount' {
     It 'Counts words in file' {
-        $result = Measure-AgentWordCount -Path './README.md'
+        $result = Measure-AgentWordCount -Path './README.md' -Raw
         $result.type | Should -Be 'word_count'
         $result.total_words | Should -BeGreaterThan 0
     }
     
     It 'Returns structured word count data' {
-        $result = Measure-AgentWordCount -Path './README.md'
+        $result = Measure-AgentWordCount -Path './README.md' -Raw
         $result.total_lines | Should -BeGreaterThan 0
         $result.total_characters | Should -BeGreaterThan 0
     }
@@ -213,25 +212,25 @@ Describe 'Measure-AgentWordCount' {
 
 Describe 'Get-AgentGitStatus' {
     It 'Returns git status' {
-        $result = Get-AgentGitStatus -Path '.'
+        $result = Get-AgentGitStatus -Path '.' -Raw
         $result.type | Should -Be 'git_status'
     }
     
     It 'Returns structured git data' {
-        $result = Get-AgentGitStatus -Path '.'
+        $result = Get-AgentGitStatus -Path '.' -Raw
         $result.branch | Should -Not -BeNullOrEmpty
     }
 }
 
 Describe 'Get-AgentGitLog' {
     It 'Returns git log' {
-        $result = Get-AgentGitLog -Path '.' -Count 5
+        $result = Get-AgentGitLog -Path '.' -Count 5 -Raw
         $result.type | Should -Be 'git_log'
         $result.commits | Should -Not -BeNullOrEmpty
     }
     
     It 'Returns structured commit data' {
-        $result = Get-AgentGitLog -Path '.' -Count 1
+        $result = Get-AgentGitLog -Path '.' -Count 1 -Raw
         $commit = $result.commits[0]
         $commit.hash | Should -Not -BeNullOrEmpty
         $commit.message | Should -Not -BeNullOrEmpty
@@ -240,30 +239,29 @@ Describe 'Get-AgentGitLog' {
 
 Describe 'Get-AgentGitDiff' {
     It 'Returns git diff' {
-        $result = Get-AgentGitDiff -Path '.'
+        $result = Get-AgentGitDiff -Path '.' -Raw
         $result.type | Should -Be 'git_diff'
     }
 }
 
 Describe 'Get-AgentToolVersion' {
     It 'Returns tool versions' {
-        $result = Get-AgentToolVersion -Tools @('git', 'node')
+        $result = Get-AgentToolVersion -Tools @('git', 'node') -Raw
         $result.type | Should -Be 'tool_versions'
         $result.tools | Should -Not -BeNullOrEmpty
     }
     
     It 'Returns structured version data' {
-        $result = Get-AgentToolVersion -Tools @('git')
+        $result = Get-AgentToolVersion -Tools @('git') -Raw
         $tool = $result.tools[0]
         $tool.name | Should -Be 'git'
         $tool.installed | Should -Be $true
     }
 }
 
-# Edge case tests
 Describe 'Edge Cases' {
     It 'Get-AgentChildItem returns error for invalid path' {
-        $result = Get-AgentChildItem -Path 'C:\NonExistentPath12345' -Depth 0 -Raw
+        $result = Get-AgentChildItem -Path 'C:\NonExistentPath12345' -Depth 0
         $result | Should -Match 'error'
     }
     
@@ -273,13 +271,13 @@ Describe 'Edge Cases' {
     }
     
     It 'Find-AgentPattern returns empty for non-matching pattern' {
-        $result = Find-AgentPattern -Pattern 'ZZZZZNOTFOUND12345' -Path './Public'
+        $result = Find-AgentPattern -Pattern 'ZZZZZNOTFOUND12345' -Path './Public' -Raw
         $result.type | Should -Be 'search_results'
         $result.matches | Should -BeNullOrEmpty
     }
     
     It 'Get-AgentProcess handles Top 0' {
-        $result = Get-AgentProcess -Top 0
+        $result = Get-AgentProcess -Top 0 -Raw
         $result.type | Should -Be 'process_list'
     }
     
@@ -291,17 +289,17 @@ Describe 'Edge Cases' {
     }
     
     It 'Get-AgentEnvironment filters are case-insensitive' {
-        $result = Get-AgentEnvironment -Filter 'path'
+        $result = Get-AgentEnvironment -Filter 'path' -Raw
         $result.vars | Should -Not -BeNullOrEmpty
     }
     
     It 'Find-AgentRipgrep handles no matches' {
-        $result = Find-AgentRipgrep -Pattern 'ZZZZZNOTFOUND12345' -Path './Public'
+        $result = Find-AgentRipgrep -Pattern 'ZZZZZNOTFOUND12345' -Path './Public' -Raw
         $result.type | Should -Be 'ripgrep_results'
     }
     
     It 'Get-AgentDisk returns usage percentage' {
-        $result = Get-AgentDisk
+        $result = Get-AgentDisk -Raw
         $drive = $result.drives | Where-Object { $_.total_bytes -gt 0 } | Select-Object -First 1
         $drive.used_percent | Should -BeGreaterOrEqual 0
         $drive.used_percent | Should -BeLessOrEqual 100

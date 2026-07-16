@@ -24,7 +24,8 @@ function Get-AgentService {
         
         [switch]$Descending,
         
-        [switch]$Json
+        [switch]$Raw,
+                [switch]$Json
     )
     
     $services = Get-Service -ErrorAction SilentlyContinue
@@ -71,10 +72,10 @@ function Get-AgentService {
         services = @($results)
     }
     
-    if ($Json) {
-        $output | ConvertTo-Json -Depth 10
-    } else {
+    if ($Raw) {
         $output
+    } else {
+        $output | ConvertTo-Json -Depth 10
     }
 }
 

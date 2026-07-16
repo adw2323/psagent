@@ -20,7 +20,8 @@ function Get-AgentEnvironment {
         
         [switch]$ShowSecrets,
         
-        [switch]$Json
+        [switch]$Raw,
+                [switch]$Json
     )
     
     $envVars = @()
@@ -77,10 +78,10 @@ function Get-AgentEnvironment {
         path_breakdown = $pathBreakdown
     }
     
-    if ($Json) {
-        $output | ConvertTo-Json -Depth 10
-    } else {
+    if ($Raw) {
         $output
+    } else {
+        $output | ConvertTo-Json -Depth 10
     }
 }
 

@@ -31,7 +31,8 @@ function Find-AgentPattern {
         
         [int]$Context = 0,
         
-        [switch]$Json
+        [switch]$Raw,
+                [switch]$Json
     )
     
     $resolvedPath = Resolve-Path -Path $Path -ErrorAction SilentlyContinue
@@ -92,10 +93,10 @@ function Find-AgentPattern {
         matches = $matches
     }
     
-    if ($Json) {
-        $output | ConvertTo-Json -Depth 10
-    } else {
+    if ($Raw) {
         $output
+    } else {
+        $output | ConvertTo-Json -Depth 10
     }
 }
 
