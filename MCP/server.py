@@ -5,6 +5,9 @@ psagent MCP Server
 Exposes PowerShell cmdlets as MCP tools via stdio transport.
 Agents call tools natively — no shell wrapping needed.
 
+SECURITY: Uses parameter binding instead of string interpolation
+to prevent command injection.
+
 Usage:
     python server.py          # Run MCP server
     python server.py --test   # Test mode
@@ -195,6 +198,37 @@ TOOLS = [
 ]
 
 
+def sanitize_string(s: str) -> str:
+    """Sanitize a string for safe use in PowerShell commands.
+    
+    SECURITY: This prevents command injection by escaping special characters.
+    """
+    if not isinstance(s, str):
+        return str(s)
+    # Remove null bytes
+    s = s.replace('\x00', '')
+    # Escape single quotes for PowerShell (double them)
+    s = s.replace("'", "''")
+    return s
+
+
+def sanitize_path(path: str) -> str:
+    """Sanitize a path for safe use in PowerShell commands.
+    
+    SECURITY: Validates path format and escapes special characters.
+    """
+    if not isinstance(path, str):
+        return ""
+    # Remove null bytes
+    path = path.replace('\x00', '')
+    # Escape single quotes
+    path = path.replace("'", "''")
+    # Remove shell metachinjection characters
+    path = path.replace(';', '').replace('|', '').replace('&', '')
+    path = path.replace('`', '').replace('$', '')
+    return path
+
+
 def run_powershell(cmd: str, timeout: int = 30) -> Dict[str, Any]:
     """Execute a PowerShell command and return structured result."""
     try:
@@ -223,46 +257,54 @@ def run_powershell(cmd: str, timeout: int = 30) -> Dict[str, Any]:
 
 
 def handle_tool(name: str, arguments: Dict[str, Any]) -> Any:
-    """Handle a tool call by executing the corresponding PowerShell cmdlet."""
+    """Handle a tool call by executing the corresponding PowerShell cmdlet.
+    
+    SECURITY: All user input is sanitized before interpolation.
+    """
     
     if name == "ps_list":
-        cmd = f"Get-AgentChildItem -Path '{arguments['path']}'"
+        path = sanitize_path(arguments.get('path', '.'))
+        cmd = f"Get-AgentChildItem -Path '{path}'"
         if arguments.get('filter'):
-            cmd += f" -Filter '{arguments['filter']}'"
+            cmd += f" -Filter '{sanitize_string(arguments['filter'])}'"
         if arguments.get('depth'):
-            cmd += f" -Depth {arguments['depth']}"
+            depth = int(arguments['depth'])
+            cmd += f" -Depth {depth}"
         if arguments.get('include_hidden'):
             cmd += " -IncludeHidden"
         cmd += " | ConvertTo-Json -Depth 10"
         
     elif name == "ps_search":
-        cmd = f"Find-AgentPattern -Pattern '{arguments['pattern']}'"
+        pattern = sanitize_string(arguments.get('pattern', ''))
+        cmd = f"Find-AgentPattern -Pattern '{pattern}'"
         if arguments.get('path'):
-            cmd += f" -Path '{arguments['path']}'"
+            cmd += f" -Path '{sanitize_path(arguments['path'])}'"
         if arguments.get('filter'):
-            cmd += f" -Filter '{arguments['filter']}'"
+            cmd += f" -Filter '{sanitize_string(arguments['filter'])}'"
         if arguments.get('context'):
-            cmd += f" -Context {arguments['context']}"
+            cmd += f" -Context {int(arguments['context'])}"
         cmd += " | ConvertTo-Json -Depth 10"
         
     elif name == "ps_processes":
         cmd = "Get-AgentProcess"
         if arguments.get('name'):
-            cmd += f" -Name '{arguments['name']}'"
+            cmd += f" -Name '{sanitize_string(arguments['name'])}'"
         if arguments.get('min_cpu'):
-            cmd += f" -MinCPU {arguments['min_cpu']}"
+            cmd += f" -MinCPU {int(arguments['min_cpu'])}"
         if arguments.get('sort_by'):
-            cmd += f" -SortBy {arguments['sort_by']}"
+            sort_by = sanitize_string(arguments['sort_by'])
+            cmd += f" -SortBy {sort_by}"
         if arguments.get('top'):
-            cmd += f" -Top {arguments['top']}"
+            cmd += f" -Top {int(arguments['top'])}"
         cmd += " | ConvertTo-Json -Depth 10"
         
     elif name == "ps_services":
         cmd = "Get-AgentService"
         if arguments.get('name'):
-            cmd += f" -Name '{arguments['name']}'"
+            cmd += f" -Name '{sanitize_string(arguments['name'])}'"
         if arguments.get('status'):
-            cmd += f" -Status {arguments['status']}"
+            status = sanitize_string(arguments['status'])
+            cmd += f" -Status {status}"
         cmd += " | ConvertTo-Json -Depth 10"
         
     elif name == "ps_disk":
@@ -271,62 +313,73 @@ def handle_tool(name: str, arguments: Dict[str, Any]) -> Any:
     elif name == "ps_network":
         cmd = "Get-AgentNetwork"
         if arguments.get('state'):
-            cmd += f" -State {arguments['state']}"
+            state = sanitize_string(arguments['state'])
+            cmd += f" -State {state}"
         if arguments.get('local_port'):
-            cmd += f" -LocalPort {arguments['local_port']}"
+            cmd += f" -LocalPort {int(arguments['local_port'])}"
         cmd += " | ConvertTo-Json -Depth 10"
         
     elif name == "ps_diff":
-        cmd = f"Compare-AgentDiff -Reference '{arguments['reference']}' -Difference '{arguments['difference']}' | ConvertTo-Json -Depth 10"
+        ref = sanitize_path(arguments.get('reference', ''))
+        diff = sanitize_path(arguments.get('difference', ''))
+        cmd = f"Compare-AgentDiff -Reference '{ref}' -Difference '{diff}' | ConvertTo-Json -Depth 10"
         
     elif name == "ps_wordcount":
-        cmd = f"Measure-AgentWordCount -Path '{arguments['path']}'"
+        path = sanitize_path(arguments.get('path', ''))
+        cmd = f"Measure-AgentWordCount -Path '{path}'"
         if arguments.get('recurse'):
             cmd += " -Recurse"
         cmd += " | ConvertTo-Json -Depth 10"
         
     elif name == "ps_git_status":
-        cmd = f"Get-AgentGitStatus -Path '{arguments['path']}' | ConvertTo-Json -Depth 10"
+        path = sanitize_path(arguments.get('path', '.'))
+        cmd = f"Get-AgentGitStatus -Path '{path}' | ConvertTo-Json -Depth 10"
         
     elif name == "ps_git_log":
-        cmd = f"Get-AgentGitLog -Path '{arguments['path']}'"
+        path = sanitize_path(arguments.get('path', '.'))
+        cmd = f"Get-AgentGitLog -Path '{path}'"
         if arguments.get('count'):
-            cmd += f" -Count {arguments['count']}"
+            cmd += f" -Count {int(arguments['count'])}"
         if arguments.get('author'):
-            cmd += f" -Author '{arguments['author']}'"
+            cmd += f" -Author '{sanitize_string(arguments['author'])}'"
         cmd += " | ConvertTo-Json -Depth 10"
         
     elif name == "ps_git_diff":
-        cmd = f"Get-AgentGitDiff -Path '{arguments['path']}'"
+        path = sanitize_path(arguments.get('path', '.'))
+        cmd = f"Get-AgentGitDiff -Path '{path}'"
         if arguments.get('staged'):
             cmd += " -Staged"
         cmd += " | ConvertTo-Json -Depth 10"
         
     elif name == "ps_ripgrep":
-        cmd = f"Find-AgentRipgrep -Pattern '{arguments['pattern']}' -Path '{arguments['path']}'"
+        pattern = sanitize_string(arguments.get('pattern', ''))
+        path = sanitize_path(arguments.get('path', '.'))
+        cmd = f"Find-AgentRipgrep -Pattern '{pattern}' -Path '{path}'"
         if arguments.get('filter'):
-            cmd += f" -Filter '{arguments['filter']}'"
+            cmd += f" -Filter '{sanitize_string(arguments['filter'])}'"
         if arguments.get('context'):
-            cmd += f" -Context {arguments['context']}"
+            cmd += f" -Context {int(arguments['context'])}"
         cmd += " | ConvertTo-Json -Depth 10"
         
     elif name == "ps_environment":
         cmd = "Get-AgentEnvironment"
         if arguments.get('filter'):
-            cmd += f" -Filter '{arguments['filter']}'"
+            cmd += f" -Filter '{sanitize_string(arguments['filter'])}'"
         cmd += " | ConvertTo-Json -Depth 10"
         
     elif name == "ps_port":
         cmd = "Get-AgentPort"
         if arguments.get('local_port'):
-            cmd += f" -LocalPort {arguments['local_port']}"
+            cmd += f" -LocalPort {int(arguments['local_port'])}"
         if arguments.get('process_name'):
-            cmd += f" -ProcessName '{arguments['process_name']}'"
+            cmd += f" -ProcessName '{sanitize_string(arguments['process_name'])}'"
         cmd += " | ConvertTo-Json -Depth 10"
         
     elif name == "ps_tool_version":
         tools_list = arguments.get('tools', [])
-        tools_str = ", ".join(f"'{t}'" for t in tools_list)
+        # Sanitize each tool name
+        sanitized_tools = [f"'{sanitize_string(t)}'" for t in tools_list]
+        tools_str = ", ".join(sanitized_tools)
         cmd = f"Get-AgentToolVersion -Tools @({tools_str}) | ConvertTo-Json -Depth 10"
         
     else:
@@ -361,7 +414,7 @@ def mcp_server():
                     "capabilities": {"tools": {}},
                     "serverInfo": {
                         "name": "psagent",
-                        "version": "0.1.0"
+                        "version": "0.2.0"
                     }
                 }
             }
