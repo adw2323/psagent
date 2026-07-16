@@ -92,7 +92,7 @@ function Get-AgentProcess {
         type = 'process_list'
         timestamp = [DateTimeOffset]::Now.ToUnixTimeSeconds()
         total_processes = $results.Count
-        processes = $results
+        processes = @($results)
     }
     
     if ($Json) {

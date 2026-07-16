@@ -38,7 +38,7 @@ function Get-AgentDisk {
         type = 'disk_info'
         timestamp = [DateTimeOffset]::Now.ToUnixTimeSeconds()
         total_drives = $results.Count
-        drives = $results
+        drives = @($results)
     }
     
     if ($Json) {

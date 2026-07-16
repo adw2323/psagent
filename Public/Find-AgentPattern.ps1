@@ -39,13 +39,22 @@ function Find-AgentPattern {
         return @{ error = "Path not found: $Path" } | ConvertTo-Json
     }
     
+    # If path is a directory, search all files in it
+    $searchPath = $resolvedPath.Path
+    if (Test-Path -Path $searchPath -PathType Container) {
+        $searchPath = Join-Path -Path $searchPath -ChildPath "*"
+    }
+    
     $matches = @()
     
     $searchParams = @{
-        Path = $resolvedPath.Path
+        Path = $searchPath
         Pattern = $Pattern
-        Filter = $Filter
         ErrorAction = 'SilentlyContinue'
+    }
+    
+    if ($Filter -and $Filter -ne '*') {
+        $searchParams.Include = $Filter
     }
     
     if ($Recurse) { $searchParams.Recurse = $true }

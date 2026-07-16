@@ -1,0 +1,24 @@
+# Auto-deployed Sentrux architectural constraints
+
+[general]
+description = "Default architectural rules"
+max_cycles = 0
+
+[modularity]
+max_god_files = 0
+min_modularity = 0.3
+
+[security]
+forbid_patterns = [
+    "password\\s*=\\s*['\"][^'\"]+['\"]",
+    "api_key\\s*=\\s*['\"][^'\"]+['\"]",
+    "secret\\s*=\\s*['\"][^'\"]+['\"]",
+    "Bearer\\s+[A-Za-z0-9\\.\\-_]{20,}",
+]
+required_checks = [
+    "no_plaintext_secrets",
+    "no_hardcoded_tokens",
+]
+
+[documentation]
+require_project_docs = true

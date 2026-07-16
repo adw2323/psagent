@@ -39,8 +39,14 @@ function Get-AgentService {
     
     $results = @()
     
+    # Batch WMI query for all service details (much faster than per-service)
+    $wmiData = @{}
+    Get-CimInstance Win32_Service -ErrorAction SilentlyContinue | ForEach-Object {
+        $wmiData[$_.Name] = $_
+    }
+    
     $services | ForEach-Object {
-        $wmi = Get-CimInstance Win32_Service -Filter "Name='$($_.Name)'" -ErrorAction SilentlyContinue
+        $wmi = $wmiData[$_.Name]
         
         $results += @{
             name = $_.Name
@@ -62,7 +68,7 @@ function Get-AgentService {
         type = 'service_list'
         timestamp = [DateTimeOffset]::Now.ToUnixTimeSeconds()
         total_services = $results.Count
-        services = $results
+        services = @($results)
     }
     
     if ($Json) {

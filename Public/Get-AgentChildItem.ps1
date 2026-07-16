@@ -79,8 +79,8 @@ function Get-AgentChildItem {
         timestamp = [DateTimeOffset]::Now.ToUnixTimeSeconds()
         path = $resolvedPath.Path
         total_entries = $items.Count
-        files = ($items | Where-Object { -not $_.is_dir })
-        directories = ($items | Where-Object { $_.is_dir })
+        files = @($items | Where-Object { -not $_.is_dir })
+        directories = @($items | Where-Object { $_.is_dir })
     }
     
     if ($Json) {
