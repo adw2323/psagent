@@ -159,6 +159,38 @@ TOOLS = [
             },
             "required": ["pattern", "path"]
         }
+    },
+    {
+        "name": "ps_environment",
+        "description": "List environment variables with optional filtering",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "filter": {"type": "string", "description": "Filter by variable name"}
+            }
+        }
+    },
+    {
+        "name": "ps_port",
+        "description": "List listening ports with process mapping",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "local_port": {"type": "integer", "description": "Filter by local port"},
+                "process_name": {"type": "string", "description": "Filter by process name"}
+            }
+        }
+    },
+    {
+        "name": "ps_tool_version",
+        "description": "Get version information for installed tools",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "tools": {"type": "array", "items": {"type": "string"}, "description": "List of tool names to check"}
+            },
+            "required": ["tools"]
+        }
     }
 ]
 
@@ -277,6 +309,25 @@ def handle_tool(name: str, arguments: Dict[str, Any]) -> Any:
         if arguments.get('context'):
             cmd += f" -Context {arguments['context']}"
         cmd += " | ConvertTo-Json -Depth 10"
+        
+    elif name == "ps_environment":
+        cmd = "Get-AgentEnvironment"
+        if arguments.get('filter'):
+            cmd += f" -Filter '{arguments['filter']}'"
+        cmd += " | ConvertTo-Json -Depth 10"
+        
+    elif name == "ps_port":
+        cmd = "Get-AgentPort"
+        if arguments.get('local_port'):
+            cmd += f" -LocalPort {arguments['local_port']}"
+        if arguments.get('process_name'):
+            cmd += f" -ProcessName '{arguments['process_name']}'"
+        cmd += " | ConvertTo-Json -Depth 10"
+        
+    elif name == "ps_tool_version":
+        tools_list = arguments.get('tools', [])
+        tools_str = ", ".join(f"'{t}'" for t in tools_list)
+        cmd = f"Get-AgentToolVersion -Tools @({tools_str}) | ConvertTo-Json -Depth 10"
         
     else:
         return {"error": f"Unknown tool: {name}"}

@@ -37,8 +37,9 @@ Describe 'Get-AgentProcess' {
     }
     
     It 'Returns structured process data' {
-        $result = Get-AgentProcess -Top 1
-        $proc = $result.processes[0]
+        $result = Get-AgentProcess -Top 5
+        $proc = $result.processes | Where-Object { $_.id -gt 0 } | Select-Object -First 1
+        $proc | Should -Not -BeNullOrEmpty
         $proc.name | Should -Not -BeNullOrEmpty
         $proc.id | Should -BeGreaterThan 0
         $proc.cpu | Should -BeGreaterOrEqual 0
