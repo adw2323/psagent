@@ -23,8 +23,7 @@ function Get-AgentGitDiff {
         
         [switch]$Staged,
         
-        [switch]$Raw,
-                [switch]$Json
+        [switch]$Raw
     )
     
     $resolvedPath = Resolve-Path -Path $Path -ErrorAction SilentlyContinue
@@ -32,30 +31,34 @@ function Get-AgentGitDiff {
         return @{ error = "Path not found: $Path" } | ConvertTo-Json
     }
     
-    # Build diff command
-    $diffArgs = @('diff', '--stat=300')
+    # Build diff command using numstat for machine-readable output
+    $diffArgs = @('diff', '--numstat')
     if ($Staged) { $diffArgs += '--staged' }
     if ($Commit) { $diffArgs += $Commit }
     
-    $diffOutput = & git -C $resolvedPath.Path @diffArgs 2>&1
+    $numstatOutput = & git -C $resolvedPath.Path @diffArgs 2>&1
     
-    # Parse diff stat
+    # Parse numstat output (format: added\tremoved\tfile)
     $files = @()
     $totalAdded = 0
     $totalRemoved = 0
     
-    foreach ($line in $diffOutput) {
-        if ($line -match '(.+?)\s+\|\s+(\d+)\s+\+*(-*)(-*)') {
-            $file = $Matches[1].Trim()
-            $changes = [int]$Matches[2]
-            $added = if ($Matches[3]) { $changes } else { 0 }
-            $removed = if ($Matches[4]) { $changes } else { 0 }
+    foreach ($line in $numstatOutput) {
+        if ($line -match '^(\d+|\-)\t(\d+|\-)\t(.+)$') {
+            $addedStr = $Matches[1]
+            $removedStr = $Matches[2]
+            $file = $Matches[3]
+            
+            # Handle binary files (shown as -)
+            $added = if ($addedStr -eq '-') { 0 } else { [int]$addedStr }
+            $removed = if ($removedStr -eq '-') { 0 } else { [int]$removedStr }
             
             $files += @{
                 file = $file
                 path = Join-Path $resolvedPath.Path $file
                 additions = $added
                 deletions = $removed
+                is_binary = ($addedStr -eq '-' -or $removedStr -eq '-')
             }
             
             $totalAdded += $added
@@ -63,9 +66,11 @@ function Get-AgentGitDiff {
         }
     }
     
-    # Get detailed diff for each file
+    # Get detailed diff for each file (limit to first 10 files for performance)
     $detailedDiff = @()
-    foreach ($file in $files) {
+    $filesToDetail = $files | Select-Object -First 10
+    
+    foreach ($file in $filesToDetail) {
         $fileDiff = & git -C $resolvedPath.Path diff -- $file.file 2>&1
         $lines = @()
         

@@ -48,7 +48,7 @@ function Get-AgentPort {
         $process = Get-Process -Id $_.OwningProcess -ErrorAction SilentlyContinue
         $processName = if ($process) { $process.Name } else { 'unknown' }
         
-        if ($ProcessName -and $processName -notmatch $ProcessName) {
+        if ($ProcessName -and $processName -notlike "*$ProcessName*") {
             return
         }
         

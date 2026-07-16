@@ -60,7 +60,7 @@
     
     # Private functions
     ScriptsToProcess = @(
-        'Private/ConvertTo-AgentJson.ps1',
+        'Public/ConvertTo-AgentJson.ps1',
         'Private/Get-Language.ps1',
         'Private/Get-MIMEType.ps1'
     )

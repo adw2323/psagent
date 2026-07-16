@@ -92,7 +92,7 @@ function Get-AgentChildItem {
             language = $lang
             mime = $mime
             extension = $ext
-            modified = [DateTimeOffset]::Now.ToUnixTimeSeconds()
+            modified = [DateTimeOffset]::new($_.LastWriteTime).ToUnixTimeSeconds()
             modified_ago_s = [math]::Floor(([DateTimeOffset]::Now - $_.LastWriteTime).TotalSeconds)
             readable = -not $_.IsReadOnly
         }
@@ -114,13 +114,5 @@ function Get-AgentChildItem {
     }
 }
 
-function Format-FileSize {
-    param([long]$Bytes)
-    
-    if ($Bytes -ge 1GB) { return "{0:N1}GB" -f ($Bytes / 1GB) }
-    if ($Bytes -ge 1MB) { return "{0:N1}MB" -f ($Bytes / 1MB) }
-    if ($Bytes -ge 1KB) { return "{0:N1}KB" -f ($Bytes / 1KB) }
-    return "${Bytes}B"
-}
 
 Set-Alias -Name al -Value Get-AgentChildItem

@@ -38,7 +38,7 @@ function Get-AgentEnvironment {
         # Mask secrets unless ShowSecrets
         if ($isSecret -and -not $ShowSecrets) {
             if ($value.Length -gt 8) {
-                $value = $value.Substring(0, 4) + '****' + $value.Substring($value.Length - 4)
+                $value = $value.Substring(0, 2) + '****' + $value.Substring($value.Length - 2)
             } else {
                 $value = '****'
             }

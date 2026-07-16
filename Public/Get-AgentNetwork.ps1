@@ -14,8 +14,7 @@ function Get-AgentNetwork {
         
         [int]$LocalPort,
         
-        [switch]$Raw,
-                [switch]$Json
+        [switch]$Raw
     )
     
     $connections = Get-NetTCPConnection -ErrorAction SilentlyContinue
@@ -28,10 +27,24 @@ function Get-AgentNetwork {
         $connections = $connections | Where-Object { $_.LocalPort -eq $LocalPort }
     }
     
+    # Batch process lookup for performance
+    $processIds = $connections | ForEach-Object { $_.OwningProcess } | Sort-Object -Unique
+    $processMap = @{}
+    
+    if ($processIds.Count -gt 0) {
+        Get-Process -Id $processIds -ErrorAction SilentlyContinue | ForEach-Object {
+            $processMap[$_.Id] = $_.Name
+        }
+    }
+    
     $results = @()
     
     $connections | ForEach-Object {
-        $process = Get-Process -Id $_.OwningProcess -ErrorAction SilentlyContinue
+        $processName = if ($processMap.ContainsKey($_.OwningProcess)) { 
+            $processMap[$_.OwningProcess] 
+        } else { 
+            'unknown' 
+        }
         
         $results += @{
             local_address = $_.LocalAddress
@@ -39,7 +52,7 @@ function Get-AgentNetwork {
             remote_address = $_.RemoteAddress
             remote_port = $_.RemotePort
             state = $_.State.ToString()
-            process_name = if ($process) { $process.Name } else { 'unknown' }
+            process_name = $processName
             process_id = $_.OwningProcess
         }
     }
