@@ -1,10 +1,15 @@
 @{
     RootModule = 'psagent.psm1'
-    ModuleVersion = '0.1.0'
+    ModuleVersion = '0.2.0'
     GUID = 'c6162bb8-d5c1-48a5-80d3-fe69530bb89d'
     Author = 'Nexum Router by Dialagram'
-    Description = 'Structured data provider for AI agents on Windows'
+    CompanyName = 'Dialagram'
+    Copyright = '(c) 2026 Dialagram. All rights reserved.'
+    Description = 'Structured data provider for AI agents on Windows. Returns JSON instead of human-formatted text, saving tokens and improving reliability.'
     PowerShellVersion = '5.1'
+    Tags = @('ai', 'agent', 'mcp', 'structured-data', 'json', 'devtools')
+    ProjectUri = 'https://github.com/adw2323/psagent'
+    LicenseUri = 'https://github.com/adw2323/psagent/blob/main/LICENSE'
     
     # Exported cmdlets
     FunctionsToExport = @(
