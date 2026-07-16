@@ -7,14 +7,38 @@ function Get-AgentChildItem {
     
     .DESCRIPTION
     Returns directory contents as structured JSON with:
-    - Absolute paths
+    - Absolute paths (not relative)
     - File sizes (bytes + human-readable)
-    - Language detection
-    - MIME types
-    - Timestamps (Unix epoch + human-readable)
+    - Language detection (PowerShell, Python, Markdown, etc.)
+    - MIME types (for content negotiation)
+    - Timestamps (Unix epoch + seconds since modified)
+    - Directory vs file distinction
+    
+    This is the agent-friendly replacement for Get-ChildItem / ls / dir.
+    
+    .PARAMETER Path
+    Directory path to list. Defaults to current directory.
+    
+    .PARAMETER Filter
+    File filter pattern. Defaults to '*' (all files).
+    
+    .PARAMETER Depth
+    How many levels deep to recurse. Default is 1.
+    
+    .PARAMETER IncludeHidden
+    Include hidden files and directories.
+    
+    .PARAMETER Json
+    Output as formatted JSON (default). Use -Raw for hashtable.
     
     .EXAMPLE
     Get-AgentChildItem -Path C:\src -Filter *.py -Depth 2
+    
+    .EXAMPLE
+    al -Path . -Filter *.ps1
+    
+    .EXAMPLE
+    Get-AgentChildItem C:\Windows -Depth 0
     #>
     [CmdletBinding()]
     param(
