@@ -7,14 +7,14 @@ BeforeAll {
 
 Describe 'Get-AgentChildItem' {
     It 'Returns directory listing for C:\Windows' {
-        $result = Get-AgentChildItem -Path 'C:\Windows' -Depth 0
+        $result = Get-AgentChildItem -Path 'C:\Windows' -Depth 0 -Raw
         $result.type | Should -Be 'directory_listing'
         $result.total_entries | Should -BeGreaterThan 0
         $result.files | Should -Not -BeNullOrEmpty
     }
     
     It 'Returns structured metadata' {
-        $result = Get-AgentChildItem -Path 'C:\Windows' -Depth 0
+        $result = Get-AgentChildItem -Path 'C:\Windows' -Depth 0 -Raw
         $item = $result.files[0]
         $item.name | Should -Not -BeNullOrEmpty
         $item.absolute | Should -Match '^[A-Z]:\\'
@@ -23,7 +23,7 @@ Describe 'Get-AgentChildItem' {
     }
     
     It 'Filters by extension' {
-        $result = Get-AgentChildItem -Path 'C:\Windows' -Filter '*.dll' -Depth 0
+        $result = Get-AgentChildItem -Path 'C:\Windows' -Filter '*.dll' -Depth 0 -Raw
         $result.files | Should -Not -BeNullOrEmpty
         $result.files[0].extension | Should -Be '.dll'
     }
@@ -263,7 +263,7 @@ Describe 'Get-AgentToolVersion' {
 # Edge case tests
 Describe 'Edge Cases' {
     It 'Get-AgentChildItem returns error for invalid path' {
-        $result = Get-AgentChildItem -Path 'C:\NonExistentPath12345' -Depth 0
+        $result = Get-AgentChildItem -Path 'C:\NonExistentPath12345' -Depth 0 -Raw
         $result | Should -Match 'error'
     }
     

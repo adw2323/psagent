@@ -28,8 +28,8 @@ function Get-AgentChildItem {
     .PARAMETER IncludeHidden
     Include hidden files and directories.
     
-    .PARAMETER Json
-    Output as formatted JSON (default). Use -Raw for hashtable.
+    .PARAMETER Raw
+    Output as raw PowerShell hashtable (not JSON).
     
     .EXAMPLE
     Get-AgentChildItem -Path C:\src -Filter *.py -Depth 2
@@ -53,7 +53,7 @@ function Get-AgentChildItem {
         
         [switch]$Recurse,
         
-        [switch]$Json
+        [switch]$Raw
     )
     
     $resolvedPath = Resolve-Path -Path $Path -ErrorAction SilentlyContinue
@@ -107,10 +107,10 @@ function Get-AgentChildItem {
         directories = @($items | Where-Object { $_.is_dir })
     }
     
-    if ($Json) {
-        $output | ConvertTo-Json -Depth 10
-    } else {
+    if ($Raw) {
         $output
+    } else {
+        $output | ConvertTo-Json -Depth 10
     }
 }
 
