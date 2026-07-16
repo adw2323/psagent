@@ -11,23 +11,18 @@
         # File inspection
         'Get-AgentChildItem',
         'Get-AgentFile',
-        'Get-AgentStat',
-        'Get-AgentContent',
         'Find-AgentPattern',
-        
-        # Path utilities
-        'Resolve-AgentPath',
-        'Get-AgentBasename',
-        'Get-AgentDirname',
         
         # System
         'Get-AgentProcess',
         'Get-AgentService',
         'Get-AgentDisk',
         'Get-AgentNetwork',
+        'Get-AgentPort',
+        'Get-AgentEnvironment',
+        'Get-AgentToolVersion',
         
         # Search
-        'Find-AgentFile',
         'Find-AgentRipgrep',
         'Compare-AgentDiff',
         'Measure-AgentWordCount',
@@ -51,7 +46,9 @@
         'as',      # Get-AgentService
         'ad',      # Get-AgentDisk
         'an',      # Get-AgentNetwork
-        'aff',     # Find-AgentFile
+        'apo',     # Get-AgentPort
+        'aenv',    # Get-AgentEnvironment
+        'atv',     # Get-AgentToolVersion
         'adiff',   # Compare-AgentDiff
         'awc',     # Measure-AgentWordCount
         'ags',     # Get-AgentGitStatus
