@@ -1,106 +1,103 @@
-# PowerShell Structured Data Provider for AI Agents
+# psagent — PowerShell Structured Data Provider for AI Agents
 
-> Date: 2026-07-15
-> Status: Project plan — beginning implementation
+> Version: 0.2.0
+> Status: Implementation complete, 34/34 tests passing
 
-## Problem
+## What It Does
 
-AI agents running on Windows waste tokens parsing human-formatted terminal output. PowerShell returns .NET objects natively, but agents still invoke `terminal(command="...")` which captures stdout as a string, losing structure. The fix: wrap common commands in a way that preserves structure and exposes it via MCP.
+psagent wraps common Windows commands in PowerShell functions that return structured JSON instead of human-formatted text. AI agents get clean data without parsing table output.
+
+```powershell
+# Instead of parsing terminal output:
+# Get-ChildItem C:\src\*.py | Format-Table
+
+# Agent calls structured functions:
+Get-AgentChildItem -Path C:\src -Filter *.py -Depth 2
+# Returns: {type: "directory_listing", files: [{name, path, size, language, mime}, ...]}
+
+Get-AgentProcess -MinCPU 10 -SortBy CPU -Descending
+# Returns: {type: "process_list", processes: [{name, id, cpu, memory, threads}, ...]}
+
+Find-AgentPattern -Pattern "function" -Path ./Public
+# Returns: {type: "search_results", matches: [{file, line_number, line}, ...]}
+```
+
+## Installation
+
+```powershell
+Import-Module ./psagent.psd1
+```
+
+## Functions
+
+### File Inspection
+| Function | Alias | Description |
+|----------|-------|-------------|
+| `Get-AgentChildItem` | `al` | List directory contents with metadata (language, MIME, sizes) |
+| `Get-AgentFile` | `af` | Get file info with language detection and MIME type |
+| `Find-AgentPattern` | `ag` | Search files for patterns with structured output |
+
+### System
+| Function | Alias | Description |
+|----------|-------|-------------|
+| `Get-AgentProcess` | `ap` | Process list with CPU, memory, handles, command line |
+| `Get-AgentService` | `as` | Service status with start type, process ID, path |
+| `Get-AgentDisk` | — | Disk info with usage percentages |
+| `Get-AgentNetwork` | — | Network connections with addresses and ports |
+| `Get-AgentPort` | — | Listening ports with process mapping |
+| `Get-AgentEnvironment` | — | Environment variables with secret detection |
+| `Get-AgentToolVersion` | — | Tool versions (git, node, python, etc.) |
+
+### Search
+| Function | Alias | Description |
+|----------|-------|-------------|
+| `Find-AgentRipgrep` | `arg` | Fast content search via ripgrep with JSON output |
+| `Compare-AgentDiff` | — | File diff comparison |
+| `Measure-AgentWordCount` | — | Word/line/character counts |
+
+### Git
+| Function | Alias | Description |
+|----------|-------|-------------|
+| `Get-AgentGitStatus` | — | Git status with branch, staged, modified files |
+| `Get-AgentGitLog` | — | Git log with structured commit data |
+| `Get-AgentGitDiff` | — | Git diff output |
+
+### Output
+| Function | Alias | Description |
+|----------|-------|-------------|
+| `ConvertTo-AgentJson` | — | Wrap any object in standard JSON envelope |
+
+## Output Format
+
+All functions return a hashtable with:
+- `type` — function identifier (e.g., `directory_listing`, `process_list`)
+- `timestamp` — Unix epoch when generated
+- Function-specific data (e.g., `files`, `processes`, `matches`)
+
+## Testing
+
+```powershell
+Invoke-Pester ./Tests/psagent.Tests.ps1
+```
+
+34 tests covering all 16 public functions.
 
 ## Architecture
 
-### Layer 1: Structured PowerShell Module
-
-PowerShell module (`psagent`) that exposes cmdlets returning JSON objects:
-
-```powershell
-# Instead of: Get-ChildItem C:\src\*.py | Format-Table
-# Agent calls: Get-AgentChildItem -Path C:\src -Filter *.py -Depth 2
-# Returns: [{Name, FullName, Length, LastWriteTime, IsDir, Language, MIMEType}, ...]
-
-# Instead of: Get-Content file.py | Select-String "class "
-# Agent calls: Find-AgentPattern -Path C:\src -Pattern "class " -Filter *.py
-# Returns: [{File, LineNum, Line, MatchStart, MatchEnd}, ...]
-
-# Instead of: Get-Process | Where { $_.CPU -gt 10 }
-# Agent calls: Get-AgentProcess -MinCPU 10 -SortBy CPU -Descending
-# Returns: [{Name, Id, CPU, WorkingSet64, StartTime}, ...]
-```
-
-### Layer 2: MCP Server
-
-Expose cmdlets as typed MCP tools with schemas:
-
-```json
-{
-  "name": "ps_list",
-  "description": "List directory contents with metadata",
-  "parameters": {
-    "path": {"type": "string", "required": true},
-    "filter": {"type": "string", "default": "*"},
-    "depth": {"type": "integer", "default": 1},
-    "include_hidden": {"type": "boolean", "default": false}
-  }
-}
-```
-
-### Layer 3: Context Window Optimization
-
-| Command | Human Output | Structured Output | Token Savings |
-|---------|-------------|-------------------|---------------|
-| `Get-ChildItem` | 2000 tokens | 800 tokens | 60% |
-| `Select-String` | 3000 tokens | 1200 tokens | 60% |
-| `Get-Process` | 600 tokens | 400 tokens | 33% |
-| `Get-Service` | 400 tokens | 250 tokens | 37% |
-
-## Implementation Plan
-
-### Phase 1: Core Module (This Session)
-- [x] Project structure and manifest
-- [ ] File inspection cmdlets (list, stat, read, search)
-- [ ] Path utilities (resolve, basename, dirname)
-- [ ] System cmdlets (process, service, disk, network)
-- [ ] JSON output pipeline
-
-### Phase 2: MCP Server (Next Session)
-- [ ] MCP server wrapper
-- [ ] Tool definitions and schemas
-- [ ] Stdio transport
-- [ ] Claude Desktop integration
-
-### Phase 3: Azure/Cloud Integration (Future)
-- [ ] Azure resource queries
-- [ ] Active Directory lookups
-- [ ] Registry queries
-- [ ] WMI/CIM queries
-
-## Directory Structure
-
 ```
 psagent/
-├── psagent.psd1          # Module manifest
-├── psagent.psm1          # Module loader
-├── Public/               # Exported cmdlets
-│   ├── Get-AgentChildItem.ps1
-│   ├── Find-AgentPattern.ps1
-│   ├── Get-AgentProcess.ps1
-│   └── ...
-├── Private/              # Internal functions
-│   ├── ConvertTo-AgentJson.ps1
-│   ├── Get-Language.ps1
-│   └── Get-MIMEType.ps1
-├── MCP/                  # MCP server
-│   └── server.py         # MCP server wrapper
-└── Tests/                # Pester tests
-    ├── Get-AgentChildItem.Tests.ps1
-    └── ...
+├── Public/           # 16 exported functions
+├── Private/          # 3 internal helpers (JSON, language, MIME)
+├── Tests/            # Pester test suite
+├── psagent.psd1      # Module manifest
+└── psagent.psm1      # Module loader
 ```
 
-## Key Design Decisions
+## Token Savings
 
-1. **PowerShell module** — Native, no compilation needed
-2. **JSON output** — Universal, agent-friendly
-3. **Always absolute paths** — No ambiguity
-4. **Language/MIME detection** — Rich metadata like aict
-5. **MCP server** — Direct agent integration
-6. **Read-only by default** — Safety first
+| Command | Human Output | Structured Output | Savings |
+|---------|-------------|-------------------|---------|
+| `Get-Process` | ~3KB table | ~1.5KB JSON | ~50% |
+| `Get-Service` | ~8KB table | ~3KB JSON | ~60% |
+| `Get-ChildItem` | ~2KB table | ~1KB JSON | ~50% |
+| `Select-String` | ~4KB output | ~2KB JSON | ~50% |

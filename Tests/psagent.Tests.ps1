@@ -258,3 +258,51 @@ Describe 'Get-AgentToolVersion' {
         $tool.installed | Should -Be $true
     }
 }
+
+# Edge case tests
+Describe 'Edge Cases' {
+    It 'Get-AgentChildItem returns error for invalid path' {
+        $result = Get-AgentChildItem -Path 'C:\NonExistentPath12345' -Depth 0
+        $result | Should -Match 'error'
+    }
+    
+    It 'Get-AgentFile returns error for missing file' {
+        $result = Get-AgentFile -Path 'C:\NonExistent12345.txt'
+        $result | Should -Match 'error'
+    }
+    
+    It 'Find-AgentPattern returns empty for non-matching pattern' {
+        $result = Find-AgentPattern -Pattern 'ZZZZZNOTFOUND12345' -Path './Public'
+        $result.type | Should -Be 'search_results'
+        $result.matches | Should -BeNullOrEmpty
+    }
+    
+    It 'Get-AgentProcess handles Top 0' {
+        $result = Get-AgentProcess -Top 0
+        $result.type | Should -Be 'process_list'
+    }
+    
+    It 'ConvertTo-AgentJson wraps single object' {
+        $obj = @{name = 'test'; value = 42}
+        $result = $obj | ConvertTo-AgentJson
+        $result | Should -Match '"type": "result"'
+        $result | Should -Match '"count": 1'
+    }
+    
+    It 'Get-AgentEnvironment filters are case-insensitive' {
+        $result = Get-AgentEnvironment -Filter 'path'
+        $result.vars | Should -Not -BeNullOrEmpty
+    }
+    
+    It 'Find-AgentRipgrep handles no matches' {
+        $result = Find-AgentRipgrep -Pattern 'ZZZZZNOTFOUND12345' -Path './Public'
+        $result.type | Should -Be 'ripgrep_results'
+    }
+    
+    It 'Get-AgentDisk returns usage percentage' {
+        $result = Get-AgentDisk
+        $drive = $result.drives | Where-Object { $_.total_bytes -gt 0 } | Select-Object -First 1
+        $drive.used_percent | Should -BeGreaterOrEqual 0
+        $drive.used_percent | Should -BeLessOrEqual 100
+    }
+}
