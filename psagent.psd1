@@ -42,6 +42,9 @@
         # Security
         'Get-AgentSecurityAudit',
         
+        # Scheduled Tasks
+        'Get-AgentScheduledTask',
+        
         # Output
         'ConvertTo-AgentJson'
     )
@@ -65,6 +68,7 @@
         'agl',     # Get-AgentGitLog
         'agd',     # Get-AgentGitDiff
         'asa',     # Get-AgentSecurityAudit
+        'ast',     # Get-AgentScheduledTask
         'agentjson' # ConvertTo-AgentJson
     )
     
