@@ -5,10 +5,15 @@
     Author = 'Nexum Router by Dialagram'
     CompanyName = 'Dialagram'
     Copyright = '(c) 2026 Dialagram. All rights reserved.'
-    Description = 'Structured data provider for AI agents on Windows. Returns JSON instead of human-formatted text, saving tokens and improving reliability.'
+    Description = 'Structured data provider for AI agents — PowerShell functions returning JSON instead of human-formatted text.'
+    
+    # Minimum version of the PowerShell engine required
     PowerShellVersion = '5.1'
     
-    # Exported cmdlets
+    # Modules to import as nested modules
+    NestedModules = @()
+    
+    # Functions to export from this module
     FunctionsToExport = @(
         # File inspection
         'Get-AgentChildItem',
@@ -34,11 +39,14 @@
         'Get-AgentGitLog',
         'Get-AgentGitDiff',
         
+        # Security
+        'Get-AgentSecurityAudit',
+        
         # Output
         'ConvertTo-AgentJson'
     )
     
-    # Aliases
+    # Aliases to export from this module
     AliasesToExport = @(
         'al',      # Get-AgentChildItem
         'af',      # Get-AgentFile
@@ -55,22 +63,27 @@
         'awc',     # Measure-AgentWordCount
         'ags',     # Get-AgentGitStatus
         'agl',     # Get-AgentGitLog
-        'agd'      # Get-AgentGitDiff
+        'agd',     # Get-AgentGitDiff
+        'asa',     # Get-AgentSecurityAudit
+        'agentjson' # ConvertTo-AgentJson
     )
     
-    # Private functions
+    # Private functions to import
     ScriptsToProcess = @(
         'Public/ConvertTo-AgentJson.ps1',
+        'Private/Format-FileSize.ps1',
         'Private/Get-Language.ps1',
         'Private/Get-MIMEType.ps1'
     )
     
-    # PSGallery metadata
+    # Module private data
     PrivateData = @{
         PSData = @{
-            Tags = @('ai', 'agent', 'mcp', 'structured-data', 'json', 'devtools')
-            ProjectUri = 'https://github.com/adw2323/psagent'
+            Tags = @('AI', 'Agent', 'Structured', 'JSON', 'System', 'DevOps')
             LicenseUri = 'https://github.com/adw2323/psagent/blob/main/LICENSE'
+            ProjectUri = 'https://github.com/adw2323/psagent'
+            IconUri = ''
+            ReleaseNotes = 'Structured data provider for AI agents'
         }
     }
 }
