@@ -23,7 +23,7 @@
 
 .NOTES
     Author: Nexum Router by Dialagram
-    Version: 0.4.0
+    Version: 0.5.0
 #>
 function Get-AgentWindowsUpdate {
     [CmdletBinding()]

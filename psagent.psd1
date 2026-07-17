@@ -1,6 +1,6 @@
 @{
     RootModule        = 'psagent.psm1'
-    ModuleVersion     = '0.5.0'
+    ModuleVersion     = '0.6.0'
     GUID              = 'c6162bb8-d5c1-48a5-80d3-fe69530bb89d'
     Author            = 'Nexum Router by Dialagram'
     CompanyName       = 'Dialagram'
@@ -132,7 +132,7 @@
             LicenseUri = 'https://github.com/adw2323/psagent/blob/main/LICENSE'
             ProjectUri = 'https://github.com/adw2323/psagent'
             IconUri    = ''
-            ReleaseNotes = 'v0.5.0 - Added WindowsUpdate, DefenderScan, GroupPolicy, MappedDrive, BatteryHealth, SecureBoot, BitLocker, PerformanceCounter'
+            ReleaseNotes = 'v0.6.0 - Added WindowsUpdate, DefenderScan, GroupPolicy, MappedDrive, BatteryHealth, SecureBoot, BitLocker, PerformanceCounter'
         }
     }
 }

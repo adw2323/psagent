@@ -1,6 +1,6 @@
 # psagent — PowerShell Structured Data Provider for AI Agents
 
-> Version: 0.5.0 | 42 functions | 98 tests passing
+> Version: 0.6.0 | 42 functions | 98 tests passing
 
 ## What It Does
 
@@ -101,7 +101,7 @@ Import-Module psagent
 |----------|-------|-------------|
 | `Get-AgentClipboard` | `aclip` | Read/write clipboard content |
 
-### New in v0.5.0
+### New in v0.6.0
 | Function | Alias | Description |
 |----------|-------|-------------|
 | `Get-AgentWindowsUpdate` | `awup` | Windows Update history and status |
