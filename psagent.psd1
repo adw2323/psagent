@@ -51,6 +51,9 @@
         # Firewall
         'Get-AgentFirewall',
         
+        # Windows Defender
+        'Get-AgentDefender',
+        
         # Output
         'ConvertTo-AgentJson'
     )
@@ -77,6 +80,7 @@
         'ast',     # Get-AgentScheduledTask
         'ael',     # Get-AgentEventLog
         'afw',     # Get-AgentFirewall
+        'adf',     # Get-AgentDefender
         'agentjson' # ConvertTo-AgentJson
     )
     
