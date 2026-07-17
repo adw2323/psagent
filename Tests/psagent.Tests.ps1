@@ -522,3 +522,173 @@ Describe 'Edge Cases' {
         $result.users | Should -BeNullOrEmpty
     }
 }
+
+Describe 'Get-AgentClipboard' {
+    It 'Returns clipboard content type' {
+        $result = Get-AgentClipboard -Raw
+        $result.type | Should -Be 'clipboard_content'
+        $result.ContainsKey('has_text') | Should -Be $true
+        $result.ContainsKey('has_image') | Should -Be $true
+        $result.ContainsKey('has_files') | Should -Be $true
+    }
+    
+    It 'Can set and read clipboard' {
+        $testText = "psagent test $(Get-Random)"
+        Set-Clipboard -Value $testText
+        Start-Sleep -Milliseconds 200
+        $result = Get-AgentClipboard -Raw
+        $result.has_text | Should -Be $true
+        $result.text | Should -Be $testText
+    }
+    
+    It 'Reports text length' {
+        $testText = "Hello psagent $(Get-Random)"
+        Set-Clipboard -Value $testText
+        Start-Sleep -Milliseconds 200
+        $result = Get-AgentClipboard -Raw
+        $result.text_length | Should -Be $testText.Length
+    }
+}
+
+Describe 'Get-AgentRegistry' {
+    It 'Reads Windows version from registry' {
+        $result = Get-AgentRegistry -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Raw
+        $result.type | Should -Be 'registry_read'
+        $result.values | Should -Not -BeNullOrEmpty
+    }
+    
+    It 'Returns value metadata' {
+        $result = Get-AgentRegistry -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Raw
+        $val = $result.values | Where-Object { $_.name -eq 'ProductName' } | Select-Object -First 1
+        $val | Should -Not -BeNullOrEmpty
+        $val.value_type | Should -Not -BeNullOrEmpty
+    }
+    
+    It 'Lists subkeys' {
+        $result = Get-AgentRegistry -Path 'HKLM:\SOFTWARE\Microsoft\Windows' -Raw
+        $result.keys | Should -Not -BeNullOrEmpty
+        $result.keys.Count | Should -BeGreaterThan 0
+    }
+    
+    It 'Returns error for invalid path' {
+        $result = Get-AgentRegistry -Path 'HKLM:\NONEXISTENT\PATH\12345' -Raw
+        $result.error | Should -Not -BeNullOrEmpty
+    }
+    
+    It 'Respects MaxDepth parameter' {
+        $result = Get-AgentRegistry -Path 'HKLM:\SOFTWARE\Microsoft' -Recurse -MaxDepth 1 -Raw
+        $result.max_depth | Should -Be 1
+    }
+}
+
+Describe 'Get-AgentInstalledSoftware' {
+    It 'Returns installed software list' {
+        $result = Get-AgentInstalledSoftware -Raw
+        $result.type | Should -Be 'installed_software'
+        $result.software | Should -Not -BeNullOrEmpty
+    }
+    
+    It 'Returns software metadata' {
+        $result = Get-AgentInstalledSoftware -MaxResults 1 -Raw
+        $sw = $result.software[0]
+        $sw.name | Should -Not -BeNullOrEmpty
+    }
+    
+    It 'Filters by name' {
+        $result = Get-AgentInstalledSoftware -Filter 'Microsoft' -MaxResults 5 -Raw
+        $result.filter | Should -Be 'Microsoft'
+        $result.software | Should -Not -BeNullOrEmpty
+    }
+    
+    It 'Limits results' {
+        $result = Get-AgentInstalledSoftware -MaxResults 3 -Raw
+        $result.software.Count | Should -BeLessOrEqual 3
+    }
+}
+
+Describe 'Get-AgentSession' {
+    It 'Returns session list' {
+        $result = Get-AgentSession -Raw
+        $result.type | Should -Be 'user_sessions'
+        $result.ContainsKey('sessions') | Should -Be $true
+    }
+}
+
+Describe 'Get-AgentNetworkConfig' {
+    It 'Returns network configuration' {
+        $result = Get-AgentNetworkConfig -Raw
+        $result.type | Should -Be 'network_config'
+        $result.active_adapters | Should -Not -BeNullOrEmpty
+    }
+    
+    It 'Returns adapter details' {
+        $result = Get-AgentNetworkConfig -Raw
+        $adapter = $result.active_adapters | Select-Object -First 1
+        $adapter.name | Should -Not -BeNullOrEmpty
+        $adapter.mac_address | Should -Not -BeNullOrEmpty
+    }
+    
+    It 'Returns IP addresses' {
+        $result = Get-AgentNetworkConfig -Raw
+        $adapter = $result.active_adapters | Where-Object { $_.addresses.Count -gt 0 } | Select-Object -First 1
+        $adapter | Should -Not -BeNullOrEmpty
+        $adapter.addresses[0].address | Should -Not -BeNullOrEmpty
+    }
+    
+    It 'Filters by adapter name' {
+        $result = Get-AgentNetworkConfig -AdapterName 'Ethernet' -Raw
+        $result.active_adapters | Should -Not -BeNullOrEmpty
+    }
+}
+
+Describe 'Get-AgentWindowsFeature' {
+    It 'Returns Windows features' {
+        $result = Get-AgentWindowsFeature -Raw
+        $result.type | Should -Be 'windows_features'
+        $result.features | Should -Not -BeNullOrEmpty
+    }
+    
+    It 'Filters by name' {
+        $result = Get-AgentWindowsFeature -Filter 'Net' -Raw
+        $result.filter | Should -Be 'Net'
+        $result.features | Should -Not -BeNullOrEmpty
+    }
+    
+    It 'Can show only installed' {
+        $result = Get-AgentWindowsFeature -OnlyInstalled -Raw
+        foreach ($f in $result.features) {
+            $f.state | Should -Be 'Installed'
+        }
+    }
+}
+
+Describe 'Get-AgentCertificate' {
+    It 'Returns certificate list from Root store' {
+        $result = Get-AgentCertificate -Store 'LocalMachine\Root' -Raw
+        $result.type | Should -Be 'certificate_store'
+        $result.store | Should -Be 'LocalMachine\Root'
+        $result.certificates | Should -Not -BeNullOrEmpty
+    }
+    
+    It 'Returns certificate metadata' {
+        $result = Get-AgentCertificate -Store 'LocalMachine\Root' -Raw
+        $cert = $result.certificates | Select-Object -First 1
+        $cert.subject | Should -Not -BeNullOrEmpty
+        $cert.issuer | Should -Not -BeNullOrEmpty
+        $cert.thumbprint | Should -Not -BeNullOrEmpty
+        $cert.not_before | Should -Not -BeNullOrEmpty
+        $cert.not_after | Should -Not -BeNullOrEmpty
+        $cert.days_until_expiry | Should -BeGreaterThan 0
+    }
+    
+    It 'Can filter by issuer' {
+        $result = Get-AgentCertificate -Store 'LocalMachine\Root' -FilterIssuer 'Microsoft' -Raw
+        # May or may not find results depending on system
+        $result.ContainsKey('certificates') | Should -Be $true
+    }
+    
+    It 'Returns error for invalid store' {
+        $result = Get-AgentCertificate -Store 'NonExistentStore' -Raw
+        $result.error | Should -Not -BeNullOrEmpty
+    }
+}
