@@ -692,3 +692,114 @@ Describe 'Get-AgentCertificate' {
         $result.error | Should -Not -BeNullOrEmpty
     }
 }
+
+Describe 'Get-AgentWindowsUpdate' {
+    It 'Returns Windows Update history' {
+        $result = Get-AgentWindowsUpdate -MaxResults 5 -Raw
+        $result.Type | Should -Be 'WindowsUpdate'
+        $result.InstalledUpdates | Should -Not -BeNullOrEmpty
+    }
+
+    It 'Returns structured update data' {
+        $result = Get-AgentWindowsUpdate -MaxResults 1 -Raw
+        $update = $result.InstalledUpdates[0]
+        $update.HotFixID | Should -Match 'KB'
+        $update.Status | Should -Be 'Installed'
+    }
+}
+
+Describe 'Get-AgentDefenderScan' {
+    It 'Returns Defender scan status' {
+        $result = Get-AgentDefenderScan -Action GetStatus -Raw
+        $result.Type | Should -Be 'DefenderScan'
+        $result.Data | Should -Not -BeNullOrEmpty
+    }
+
+    It 'Returns Defender protection status' {
+        $result = Get-AgentDefenderScan -Action GetStatus -Raw
+        $result.Data.RealTimeProtectionEnabled | Should -Be $true
+    }
+}
+
+Describe 'Get-AgentGroupPolicy' {
+    It 'Returns Group Policy information' {
+        $result = Get-AgentGroupPolicy -Raw
+        $result.Type | Should -Be 'GroupPolicy'
+        $result.ComputerPolicies | Should -Not -BeNullOrEmpty
+    }
+
+    It 'Returns policy summary' {
+        $result = Get-AgentGroupPolicy -Raw
+        $result.Summary.TotalComputerPolicies | Should -BeGreaterThan 0
+    }
+}
+
+Describe 'Get-AgentMappedDrive' {
+    It 'Returns mapped drive information' {
+        $result = Get-AgentMappedDrive -Raw
+        $result.Type | Should -Be 'MappedDrive'
+        $result.Drives | Should -Not -BeNullOrEmpty
+    }
+
+    It 'Returns drive summary' {
+        $result = Get-AgentMappedDrive -Raw
+        $result.Summary.TotalDrives | Should -BeGreaterOrEqual 0
+    }
+}
+
+Describe 'Get-AgentBatteryHealth' {
+    It 'Returns battery health information' {
+        $result = Get-AgentBatteryHealth -Raw
+        $result.Type | Should -Be 'BatteryHealth'
+        $result.HasBattery | Should -Be $false
+    }
+
+    It 'Returns battery status message' {
+        $result = Get-AgentBatteryHealth -Raw
+        $result.Status.Message | Should -Match 'No battery detected'
+    }
+}
+
+Describe 'Get-AgentSecureBoot' {
+    It 'Returns Secure Boot status' {
+        $result = Get-AgentSecureBoot -Raw
+        $result.Type | Should -Be 'SecureBoot'
+        $result.Status | Should -Not -BeNullOrEmpty
+    }
+
+    It 'Returns Secure Boot enabled status' {
+        $result = Get-AgentSecureBoot -Raw
+        $result.Status.SecureBootEnabled | Should -Be $true
+    }
+}
+
+Describe 'Get-AgentBitLocker' {
+    It 'Returns BitLocker status' {
+        $result = Get-AgentBitLocker -Raw
+        $result.Type | Should -Be 'BitLocker'
+        $result.Volumes | Should -Not -BeNullOrEmpty
+    }
+
+    It 'Returns volume summary' {
+        $result = Get-AgentBitLocker -Raw
+        $result.Summary.TotalVolumes | Should -BeGreaterOrEqual 0
+    }
+}
+
+Describe 'Get-AgentPerformanceCounter' {
+    It 'Returns performance counter data' {
+        $result = Get-AgentPerformanceCounter -Raw
+        $result.Type | Should -Be 'PerformanceCounter'
+        $result.Counters | Should -Not -BeNullOrEmpty
+    }
+
+    It 'Returns CPU usage' {
+        $result = Get-AgentPerformanceCounter -Raw
+        $result.Summary.CPUUsage | Should -BeGreaterOrEqual 0
+    }
+
+    It 'Returns memory usage' {
+        $result = Get-AgentPerformanceCounter -Raw
+        $result.Summary.MemoryUsagePercent | Should -BeGreaterOrEqual 0
+    }
+}
