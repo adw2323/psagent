@@ -48,6 +48,9 @@
         # Event Logs
         'Get-AgentEventLog',
         
+        # Firewall
+        'Get-AgentFirewall',
+        
         # Output
         'ConvertTo-AgentJson'
     )
@@ -73,6 +76,7 @@
         'asa',     # Get-AgentSecurityAudit
         'ast',     # Get-AgentScheduledTask
         'ael',     # Get-AgentEventLog
+        'afw',     # Get-AgentFirewall
         'agentjson' # ConvertTo-AgentJson
     )
     
