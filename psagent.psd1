@@ -1,6 +1,6 @@
 @{
     RootModule = 'psagent.psm1'
-    ModuleVersion = '0.2.0'
+    ModuleVersion = '0.3.0'
     GUID = 'c6162bb8-d5c1-48a5-80d3-fe69530bb89d'
     Author = 'Nexum Router by Dialagram'
     CompanyName = 'Dialagram'
@@ -28,6 +28,9 @@
         'Get-AgentPort',
         'Get-AgentEnvironment',
         'Get-AgentToolVersion',
+        'Get-AgentSystemInfo',
+        'Get-AgentUser',
+        'Get-AgentStartup',
         
         # Search
         'Find-AgentRipgrep',
@@ -41,18 +44,14 @@
         
         # Security
         'Get-AgentSecurityAudit',
-        
-        # Scheduled Tasks
         'Get-AgentScheduledTask',
-        
-        # Event Logs
         'Get-AgentEventLog',
-        
-        # Firewall
         'Get-AgentFirewall',
-        
-        # Windows Defender
         'Get-AgentDefender',
+        'Get-AgentHotfix',
+        
+        # Network
+        'Get-AgentDns',
         
         # Output
         'ConvertTo-AgentJson'
@@ -71,6 +70,9 @@
         'apo',     # Get-AgentPort
         'aenv',    # Get-AgentEnvironment
         'atv',     # Get-AgentToolVersion
+        'asi',     # Get-AgentSystemInfo
+        'ausr',    # Get-AgentUser
+        'asu',     # Get-AgentStartup
         'adiff',   # Compare-AgentDiff
         'awc',     # Measure-AgentWordCount
         'ags',     # Get-AgentGitStatus
@@ -81,6 +83,8 @@
         'ael',     # Get-AgentEventLog
         'afw',     # Get-AgentFirewall
         'adf',     # Get-AgentDefender
+        'ahf',     # Get-AgentHotfix
+        'adns',    # Get-AgentDns
         'agentjson' # ConvertTo-AgentJson
     )
     
@@ -99,7 +103,7 @@
             LicenseUri = 'https://github.com/adw2323/psagent/blob/main/LICENSE'
             ProjectUri = 'https://github.com/adw2323/psagent'
             IconUri = ''
-            ReleaseNotes = 'Structured data provider for AI agents'
+            ReleaseNotes = 'v0.3.0 - Added SystemInfo, User, Startup, Hotfix, Dns functions'
         }
     }
 }

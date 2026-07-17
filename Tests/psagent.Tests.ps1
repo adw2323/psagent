@@ -259,6 +259,208 @@ Describe 'Get-AgentToolVersion' {
     }
 }
 
+Describe 'Get-AgentSecurityAudit' {
+    It 'Returns security audit data' {
+        $result = Get-AgentSecurityAudit -Raw
+        $result.type | Should -Be 'security_audit'
+    }
+    
+    It 'Returns firewall and defender status' {
+        $result = Get-AgentSecurityAudit -Raw
+        $result.results.firewall | Should -Not -BeNullOrEmpty
+        $result.results.defender | Should -Not -BeNullOrEmpty
+    }
+}
+
+Describe 'Get-AgentScheduledTask' {
+    It 'Returns scheduled tasks' {
+        $result = Get-AgentScheduledTask -Raw
+        $result.type | Should -Be 'scheduled_tasks'
+        $result.total_tasks | Should -BeGreaterThan 0
+    }
+    
+    It 'Returns structured task data' {
+        $result = Get-AgentScheduledTask -Raw
+        $task = $result.tasks[0]
+        $task.task_name | Should -Not -BeNullOrEmpty
+        $task.status | Should -Not -BeNullOrEmpty
+    }
+}
+
+Describe 'Get-AgentEventLog' {
+    It 'Returns event log entries' {
+        $result = Get-AgentEventLog -LogName System -MaxEvents 5 -Raw
+        $result.type | Should -Be 'event_log'
+        $result.events | Should -Not -BeNullOrEmpty
+    }
+    
+    It 'Returns structured event data' {
+        $result = Get-AgentEventLog -LogName System -MaxEvents 1 -Raw
+        $event = $result.events[0]
+        $event.event_id | Should -BeGreaterThan 0
+        $event.message | Should -Not -BeNullOrEmpty
+    }
+}
+
+Describe 'Get-AgentFirewall' {
+    It 'Returns firewall rules' {
+        $result = Get-AgentFirewall -Raw
+        $result.type | Should -Be 'firewall_rules'
+        $result.profiles | Should -Not -BeNullOrEmpty
+    }
+    
+    It 'Returns profile status' {
+        $result = Get-AgentFirewall -Raw
+        $profile = $result.profiles[0]
+        $profile.name | Should -Not -BeNullOrEmpty
+    }
+}
+
+Describe 'Get-AgentDefender' {
+    It 'Returns Defender status' {
+        $result = Get-AgentDefender -Raw
+        $result.type | Should -Be 'defender_status'
+        $result.status | Should -Not -BeNullOrEmpty
+    }
+    
+    It 'Returns protection status' {
+        $result = Get-AgentDefender -Raw
+        $result.status.real_time_protection | Should -Not -BeNullOrEmpty
+    }
+}
+
+Describe 'Get-AgentSystemInfo' {
+    It 'Returns system info' {
+        $result = Get-AgentSystemInfo -Raw
+        $result.type | Should -Be 'system_info'
+        $result.hostname | Should -Not -BeNullOrEmpty
+    }
+    
+    It 'Returns OS and CPU details' {
+        $result = Get-AgentSystemInfo -Raw
+        $result.os | Should -Not -BeNullOrEmpty
+        $result.os.caption | Should -Not -BeNullOrEmpty
+        $result.cpu | Should -Not -BeNullOrEmpty
+        $result.cpu.cores | Should -BeGreaterThan 0
+    }
+    
+    It 'Returns uptime' {
+        $result = Get-AgentSystemInfo -Raw
+        $result.uptime | Should -Not -BeNullOrEmpty
+        $result.uptime.total_hours | Should -BeGreaterOrEqual 0
+        $result.uptime.boot_time | Should -Not -BeNullOrEmpty
+    }
+    
+    It 'Returns memory info' {
+        $result = Get-AgentSystemInfo -Raw
+        $result.total_physical_memory_gb | Should -BeGreaterThan 0
+    }
+}
+
+Describe 'Get-AgentHotfix' {
+    It 'Returns hotfix list' {
+        $result = Get-AgentHotfix -Raw
+        $result.type | Should -Be 'hotfix_list'
+        $result.hotfixes | Should -Not -BeNullOrEmpty
+    }
+    
+    It 'Returns structured hotfix data' {
+        $result = Get-AgentHotfix -MaxResults 1 -Raw
+        $hf = $result.hotfixes[0]
+        $hf.hotfix_id | Should -Not -BeNullOrEmpty
+        $hf.description | Should -Not -BeNullOrEmpty
+    }
+    
+    It 'Limits results' {
+        $result = Get-AgentHotfix -MaxResults 3 -Raw
+        $result.hotfixes.Count | Should -BeLessOrEqual 3
+    }
+}
+
+Describe 'Get-AgentDns' {
+    It 'Resolves hostname' {
+        $result = Get-AgentDns -Hostname 'localhost' -Raw
+        $result.type | Should -Be 'dns_info'
+        $result.forward_lookups | Should -Not -BeNullOrEmpty
+    }
+    
+    It 'Resolves IP address' {
+        $result = Get-AgentDns -IPAddress '127.0.0.1' -Raw
+        $result.reverse_lookups | Should -Not -BeNullOrEmpty
+        $result.reverse_lookups[0].status | Should -Be 'success'
+    }
+    
+    It 'Reads hosts file' {
+        $result = Get-AgentDns -ShowHostsFile -Raw
+        $result.hosts_file | Should -Not -BeNullOrEmpty
+        $result.hosts_file.path | Should -Match 'hosts'
+    }
+    
+    It 'Handles multiple hostnames' {
+        $result = Get-AgentDns -Hostname @('localhost', '127.0.0.1') -Raw
+        $result.forward_lookups.Count | Should -Be 2
+    }
+}
+
+Describe 'Get-AgentStartup' {
+    It 'Returns startup items' {
+        $result = Get-AgentStartup -Raw
+        $result.type | Should -Be 'startup_items'
+        $result.total_items | Should -BeGreaterThan 0
+    }
+    
+    It 'Returns registry entries' {
+        $result = Get-AgentStartup -Raw
+        $result.registry_entries | Should -Not -BeNullOrEmpty
+        $entry = $result.registry_entries[0]
+        $entry.name | Should -Not -BeNullOrEmpty
+        $entry.command | Should -Not -BeNullOrEmpty
+    }
+    
+    It 'Includes scheduled task starts' {
+        $result = Get-AgentStartup -Raw
+        # scheduled_task_starts may be empty if no tasks have boot/logon triggers
+        $result.ContainsKey('scheduled_task_starts') | Should -Be $true
+    }
+}
+
+Describe 'Get-AgentUser' {
+    It 'Returns user list' {
+        $result = Get-AgentUser -Raw
+        $result.type | Should -Be 'user_info'
+        $result.total_users | Should -BeGreaterThan 0
+    }
+    
+    It 'Returns structured user data' {
+        $result = Get-AgentUser -Raw
+        $user = $result.users[0]
+        $user.name | Should -Not -BeNullOrEmpty
+        $user.sid | Should -Not -BeNullOrEmpty
+    }
+    
+    It 'Returns groups' {
+        $result = Get-AgentUser -Raw
+        $result.total_groups | Should -BeGreaterThan 0
+        $group = $result.groups[0]
+        $group.name | Should -Not -BeNullOrEmpty
+        $group.sid | Should -Not -BeNullOrEmpty
+    }
+    
+    It 'Returns group memberships' {
+        $result = Get-AgentUser -Raw
+        # Check that the member_of property exists on user objects
+        $result.users[0].ContainsKey('member_of') | Should -Be $true
+    }
+    
+    It 'Filters by username' {
+        $result = Get-AgentUser -UserName 'Guest' -Raw
+        # Guest may or may not exist, so check for empty or matching
+        if ($result.users.Count -gt 0) {
+            $result.users[0].name | Should -Be 'Guest'
+        }
+    }
+}
+
 Describe 'Edge Cases' {
     It 'Get-AgentChildItem returns error for invalid path' {
         $result = Get-AgentChildItem -Path 'C:\NonExistentPath12345' -Depth 0
@@ -303,5 +505,20 @@ Describe 'Edge Cases' {
         $drive = $result.drives | Where-Object { $_.total_bytes -gt 0 } | Select-Object -First 1
         $drive.used_percent | Should -BeGreaterOrEqual 0
         $drive.used_percent | Should -BeLessOrEqual 100
+    }
+    
+    It 'Get-AgentSystemInfo returns timezone' {
+        $result = Get-AgentSystemInfo -Raw
+        $result.timezone | Should -Not -BeNullOrEmpty
+    }
+    
+    It 'Get-AgentHotfix filters by hotfix ID' {
+        $result = Get-AgentHotfix -HotfixId 'KB9999999' -Raw
+        $result.hotfixes | Should -BeNullOrEmpty
+    }
+    
+    It 'Get-AgentUser handles non-existent user' {
+        $result = Get-AgentUser -UserName 'NonExistentUserXYZ123' -Raw
+        $result.users | Should -BeNullOrEmpty
     }
 }
