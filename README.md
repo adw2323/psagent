@@ -1,6 +1,6 @@
 # psagent — PowerShell Structured Data Provider for AI Agents
 
-> Version: 0.4.0 | 34 functions | 98 tests passing
+> Version: 0.5.0 | 42 functions | 98 tests passing
 
 ## What It Does
 
@@ -33,7 +33,7 @@ Copy-Item ./psagent/psagent.psd1 $HOME\Documents\PowerShell\Modules\psagent\
 Import-Module psagent
 ```
 
-## Functions (34)
+## Functions (42)
 
 ### File Inspection
 | Function | Alias | Description |
@@ -81,6 +81,7 @@ Import-Module psagent
 | `Get-AgentFirewall` | `afw` | Firewall rules and profiles |
 | `Get-AgentDefender` | `adf` | Windows Defender status |
 | `Get-AgentHotfix` | `ahf` | Installed patches/updates |
+| `Get-AgentDefenderScan` | `adscan` | Start/stop/monitor Defender scans |
 
 ### Network
 | Function | Alias | Description |
@@ -99,6 +100,17 @@ Import-Module psagent
 | Function | Alias | Description |
 |----------|-------|-------------|
 | `Get-AgentClipboard` | `aclip` | Read/write clipboard content |
+
+### New in v0.5.0
+| Function | Alias | Description |
+|----------|-------|-------------|
+| `Get-AgentWindowsUpdate` | `awup` | Windows Update history and status |
+| `Get-AgentGroupPolicy` | `agpol` | Group Policy objects and settings |
+| `Get-AgentMappedDrive` | `amap` | Mapped network drives |
+| `Get-AgentBatteryHealth` | `abat` | Battery status and health |
+| `Get-AgentSecureBoot` | `asboot` | Secure Boot configuration |
+| `Get-AgentBitLocker` | `ablock` | BitLocker encryption status |
+| `Get-AgentPerformanceCounter` | `aperf` | CPU, memory, disk, network counters |
 
 ### Output
 | Function | Alias | Description |
@@ -123,7 +135,7 @@ All functions return a hashtable with:
 
 ```
 psagent/
-├── Public/              # 34 exported functions
+├── Public/              # 42 exported functions
 ├── Private/             # 3 internal helpers (JSON, language, MIME)
 ├── Tests/               # Test suites (98 tests)
 ├── psagent.psd1         # Module manifest
